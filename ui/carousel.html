@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>ti-jeux</title>
+  <link rel="stylesheet" href="carousel.css">
+</head>
+
+<body>
+  <!-- Home view: shown when not on a carousel site -->
+  <div id="home-view">
+    <div id="app-title">ti-jeux</div>
+    <div id="progress-text"></div>
+    <button id="action-btn" class="hidden"></button>
+    <div id="all-done-msg" class="hidden">All done for today!</div>
+  </div>
+
+  <!-- Site view: shown when on a carousel site -->
+  <div id="site-view" class="hidden">
+    <div id="app-title2">ti-jeux</div>
+    <div id="site-list"></div>
+    <div id="settings-footer">
+      <a href="#" id="settings-link">Settings</a>
+    </div>
+  </div>
+
+  <script src="../scripts/sites.js"></script>
+  <script src="../scripts/carousel.js"></script>
+</body>
+
+</html>
