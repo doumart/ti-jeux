@@ -63,8 +63,8 @@ const SITES = [
     url: "https://www.theatlantic.com/games/bracket-city/",
     name: "Bracket City",
     completedCondition: () =>
-      Array.from(document.querySelectorAll('button')).some(
-        (b) => b.textContent.trim() === 'Share Result'
+      Array.from(document.querySelectorAll('h2')).some(
+        (h) => h.textContent.trim() === 'PUZZLE SOLVED!'
       )
   },
   {
@@ -74,11 +74,11 @@ const SITES = [
       Array.from(document.querySelectorAll('.pr-game-results__components')).length >0
   },
   {
-    url: "https://bandle.app/menu",
+    url: "https://bandle.app",
     name: "Bandle",
     completedCondition: () =>
-      Array.from(document.querySelectorAll('button')).some(
-        (b) => b.textContent.trim() === 'Play more Songs'
+      Array.from(document.querySelectorAll('div')).some(
+        (d) => d.textContent.trim() === 'Next Bandle in'
       )
   },
   {
