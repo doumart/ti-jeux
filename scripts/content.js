@@ -25,8 +25,16 @@ if (!currentSite) {
     const today = getMontrealDate();
     const alreadyCompleted = completions[currentSite.url] === today;
 
-    // Step 2: Inject navbar
-    const navbarShadow = injectNavbar(currentIndex, activeSites.length, alreadyCompleted);
+    // Tracks whether the current game is done; the dialog title and the
+    // "Up next" list both read this at click time.
+    let currentCompleted = alreadyCompleted;
+
+    function openNextDialog() {
+      showCompletionOverlay(activeSites, currentSite, today, currentCompleted);
+    }
+
+    // Step 2: Inject navbar (the "next" button opens the chooser dialog)
+    const navbarShadow = injectNavbar(currentIndex, activeSites.length, alreadyCompleted, openNextDialog);
 
     // Step 3: Completion detection
     if ((currentSite.completedCondition || currentSite.messageCondition) && !alreadyCompleted) {
@@ -44,15 +52,14 @@ if (!currentSite) {
           chrome.storage.sync.set({ completions: updatedCompletions });
         });
 
-        // Update navbar badge
+        currentCompleted = true;
+
+        // Update navbar badge — the dialog now opens from the "next" button.
         const countSpan = navbarShadow.getElementById('count');
         if (countSpan) {
           countSpan.textContent = `${currentIndex + 1} / ${activeSites.length} ✓`;
           countSpan.classList.add('completed');
         }
-
-        // Step 4: Show completion overlay
-        showCompletionOverlay(activeSites, currentSite, completions, today);
       }
 
       if (currentSite.completedCondition) {
@@ -79,7 +86,7 @@ if (!currentSite) {
   });
 }
 
-function injectNavbar(currentIndex, total, alreadyCompleted) {
+function injectNavbar(currentIndex, total, alreadyCompleted, onNext) {
   const host = document.createElement('div');
   host.id = 'tijeux-navbar-host';
   Object.assign(host.style, {
@@ -145,7 +152,7 @@ function injectNavbar(currentIndex, total, alreadyCompleted) {
   });
 
   shadow.getElementById('next').addEventListener('click', () => {
-    chrome.runtime.sendMessage({ type: 'navigate', direction: 'next' });
+    onNext();
   });
 
   document.body.appendChild(host);
@@ -154,31 +161,39 @@ function injectNavbar(currentIndex, total, alreadyCompleted) {
   return shadow;
 }
 
-function showCompletionOverlay(activeSites, currentSite, completions, today) {
-  // Find up to 2 next incomplete active sites (excluding current)
-  const incompleteSites = activeSites.filter(
-    (s) => s.url !== currentSite.url && completions[s.url] !== today
-  );
-  const nextSites = incompleteSites.slice(0, 2);
+function showCompletionOverlay(activeSites, currentSite, today, currentCompleted) {
+  // Don't stack overlays if the dialog is already open.
+  if (document.getElementById('tijeux-overlay-host')) return;
 
-  const host = document.createElement('div');
-  host.id = 'tijeux-overlay-host';
-  Object.assign(host.style, {
-    position: 'fixed',
-    top: '0',
-    left: '0',
-    right: '0',
-    bottom: '0',
-    zIndex: '2147483646',
-    pointerEvents: 'all',
-  });
+  // Read completions fresh so the "Up next" list reflects games finished
+  // since this page loaded (e.g. in another tab).
+  chrome.storage.sync.get(['completions'], (data) => {
+    const completions = data.completions || {};
 
-  const shadow = host.attachShadow({ mode: 'closed' });
+    // Find up to 2 next incomplete active sites (excluding current)
+    const incompleteSites = activeSites.filter(
+      (s) => s.url !== currentSite.url && completions[s.url] !== today
+    );
+    const nextSites = incompleteSites.slice(0, 2);
 
-  const nextSitesHTML =
-    nextSites.length > 0
-      ? `
-        <p class="subtext">Up next:</p>
+    const host = document.createElement('div');
+    host.id = 'tijeux-overlay-host';
+    Object.assign(host.style, {
+      position: 'fixed',
+      top: '0',
+      left: '0',
+      right: '0',
+      bottom: '0',
+      zIndex: '2147483646',
+      pointerEvents: 'all',
+    });
+
+    const shadow = host.attachShadow({ mode: 'closed' });
+
+    const nextSitesHTML =
+      nextSites.length > 0
+        ? `
+        ${currentCompleted ? '<p class="subtext">Up next:</p>' : ''}
         <div class="next-buttons">
           ${nextSites
             .map(
@@ -188,94 +203,95 @@ function showCompletionOverlay(activeSites, currentSite, completions, today) {
             .join('')}
         </div>
       `
-      : `<p class="subtext">All games complete for today!</p>`;
+        : `<p class="subtext">All games complete for today!</p>`;
 
-  shadow.innerHTML = `
-    <style>
-      .backdrop {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.6);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font: 14px/1.5 system-ui, sans-serif;
-      }
-      .card {
-        position: relative;
-        background: #fff;
-        color: #111;
-        width: 320px;
-        padding: 24px;
-        border-radius: 8px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
-        text-align: center;
-      }
-      .close-btn {
-        position: absolute;
-        top: 10px;
-        right: 12px;
-        background: none;
-        border: none;
-        font-size: 20px;
-        line-height: 1;
-        cursor: pointer;
-        color: #555;
-        padding: 2px 6px;
-        border-radius: 4px;
-      }
-      .close-btn:hover {
-        background: #f0f0f0;
-        color: #111;
-      }
-      h2 {
-        margin: 0 0 12px;
-        font-size: 22px;
-        font-weight: 700;
-      }
-      .subtext {
-        margin: 0 0 16px;
-        color: #555;
-        font-size: 13px;
-      }
-      .next-buttons {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
-      .site-btn {
-        background: #111;
-        color: #fff;
-        border: none;
-        border-radius: 6px;
-        padding: 10px 16px;
-        font-size: 14px;
-        cursor: pointer;
-        font-family: system-ui, sans-serif;
-      }
-      .site-btn:hover {
-        background: #333;
-      }
-    </style>
-    <div class="backdrop">
-      <div class="card">
-        <button class="close-btn" id="close-overlay">×</button>
-        <h2>Done!</h2>
-        ${nextSitesHTML}
+    shadow.innerHTML = `
+      <style>
+        .backdrop {
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.6);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font: 14px/1.5 system-ui, sans-serif;
+        }
+        .card {
+          position: relative;
+          background: #fff;
+          color: #111;
+          width: 320px;
+          padding: 24px;
+          border-radius: 8px;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+          text-align: center;
+        }
+        .close-btn {
+          position: absolute;
+          top: 10px;
+          right: 12px;
+          background: none;
+          border: none;
+          font-size: 20px;
+          line-height: 1;
+          cursor: pointer;
+          color: #555;
+          padding: 2px 6px;
+          border-radius: 4px;
+        }
+        .close-btn:hover {
+          background: #f0f0f0;
+          color: #111;
+        }
+        h2 {
+          margin: 0 0 12px;
+          font-size: 22px;
+          font-weight: 700;
+        }
+        .subtext {
+          margin: 0 0 16px;
+          color: #555;
+          font-size: 13px;
+        }
+        .next-buttons {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        .site-btn {
+          background: #111;
+          color: #fff;
+          border: none;
+          border-radius: 6px;
+          padding: 10px 16px;
+          font-size: 14px;
+          cursor: pointer;
+          font-family: system-ui, sans-serif;
+        }
+        .site-btn:hover {
+          background: #333;
+        }
+      </style>
+      <div class="backdrop">
+        <div class="card">
+          <button class="close-btn" id="close-overlay">×</button>
+          <h2>${currentCompleted ? 'Done!' : 'Up next'}</h2>
+          ${nextSitesHTML}
+        </div>
       </div>
-    </div>
-  `;
+    `;
 
-  shadow.getElementById('close-overlay').addEventListener('click', () => {
-    host.remove();
-  });
-
-  shadow.querySelectorAll('.site-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      window.location.href = btn.dataset.url;
+    shadow.getElementById('close-overlay').addEventListener('click', () => {
+      host.remove();
     });
-  });
 
-  document.body.appendChild(host);
-  console.log('[tijeux] completion overlay shown');
+    shadow.querySelectorAll('.site-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        window.location.href = btn.dataset.url;
+      });
+    });
+
+    document.body.appendChild(host);
+    console.log('[tijeux] completion overlay shown');
+  });
 }

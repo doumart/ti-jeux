@@ -1,7 +1,7 @@
 // Runs in MAIN world inside the Arkadium crossword iframe on arkadiumhosted.com.
 // Polls the iframe's own window.dataLayer for a Game_End entry and relays it
 // to the parent page (games.washingtonpost.com) via postMessage so that
-// wapo-completion.js (running on the parent) can react.
+// content.js (running on the parent) can react via its messageCondition.
 (function () {
   let fired = false;
 
