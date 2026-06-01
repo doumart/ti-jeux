@@ -6,6 +6,15 @@ function isSiteCompletedToday(completions, url) {
   return completions[url] === getMontrealDate();
 }
 
+// chrome.runtime.openOptionsPage() rejects intermittently with "Could not
+// create an options page" when called from a popup (opening the tab tears down
+// the popup context mid-promise). options_page opens in a tab anyway, so open
+// it directly — reliable and single-tab.
+function openSettings() {
+  chrome.tabs.create({ url: chrome.runtime.getURL('ui/options.html') });
+  window.close();
+}
+
 chrome.storage.sync.get(['states', 'completions'], (data) => {
   const states = data.states || {};
   const completions = data.completions || {};
@@ -37,9 +46,7 @@ chrome.storage.sync.get(['states', 'completions'], (data) => {
       if (activeSites.length === 0) {
         actionBtn.textContent = 'Open Settings';
         actionBtn.classList.remove('hidden');
-        actionBtn.addEventListener('click', () => {
-          chrome.runtime.openOptionsPage();
-        });
+        actionBtn.addEventListener('click', openSettings);
       } else if (incompleteSites.length > 0 && completedCount === 0) {
         actionBtn.textContent = 'Start';
         actionBtn.classList.remove('hidden');
@@ -101,7 +108,7 @@ chrome.storage.sync.get(['states', 'completions'], (data) => {
 
       document.getElementById('settings-link').addEventListener('click', (e) => {
         e.preventDefault();
-        chrome.runtime.openOptionsPage();
+        openSettings();
       });
     }
   });
