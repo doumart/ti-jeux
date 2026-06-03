@@ -1,0 +1,11 @@
+[
+  {"id": "1", "title": "Implement encoding utilities (src/encoding.ts)", "status": "done", "assignee": "file-foundation"},
+  {"id": "2", "title": "Implement file operations (src/fileOperations.ts)", "status": "done", "assignee": "file-foundation"},
+  {"id": "3", "title": "Implement integrity verification (src/integrity.ts)", "status": "done", "assignee": "file-foundation"},
+  {"id": "4", "title": "Write file-layer tests (fileOperations, integrity)", "status": "done", "assignee": "file-foundation"},
+  {"id": "5", "title": "Implement content manipulation (src/contentManipulation.ts)", "status": "done", "assignee": "content-api"},
+  {"id": "6", "title": "Implement public API (src/index.ts)", "status": "done", "assignee": "content-api"},
+  {"id": "7", "title": "Write content + integration tests", "status": "done", "assignee": "content-api"},
+  {"id": "8", "title": "Update README.md to include the word 'test'", "status": "done", "assignee": "content-api"},
+  {"id": "9", "title": "Lead: review, run full test suite, integrate", "status": "done", "assignee": "lead"}
+]
