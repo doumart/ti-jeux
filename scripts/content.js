@@ -52,6 +52,9 @@ if (!currentSite) {
     // Step 2: Inject navbar (the "next" button opens the chooser dialog)
     const navbarShadow = injectNavbar(currentIndex, activeSites.length, alreadyCompleted, openNextDialog);
 
+    const allDone = activeSites.every((s) => completions[s.url] === today);
+    const playTimer = initPlayTimer(navbarShadow, allDone, today);
+
     // Step 3: Completion detection
     if ((currentSite.completedCondition || currentSite.messageCondition) && !alreadyCompleted) {
       let triggered = false;
@@ -66,6 +69,11 @@ if (!currentSite) {
           const updatedCompletions = result.completions || {};
           updatedCompletions[currentSite.url] = getMontrealDate();
           chrome.storage.sync.set({ completions: updatedCompletions });
+
+          // Freeze the play timer once every active game is done for the day.
+          if (activeSites.every((s) => updatedCompletions[s.url] === today)) {
+            playTimer.markDone();
+          }
         });
 
         currentCompleted = true;
@@ -152,10 +160,17 @@ function injectNavbar(currentIndex, total, alreadyCompleted, onNext) {
         color: #4caf50;
         font-weight: 600;
       }
+      #timer {
+        opacity: 0.7;
+        min-width: 52px;
+        text-align: left;
+        font-variant-numeric: tabular-nums;
+      }
     </style>
     <nav>
       <button id="prev">← prev</button>
       <span id="count" ${alreadyCompleted ? 'class="completed"' : ''}>${countText}</span>
+      <span id="timer"></span>
       <button id="next">next →</button>
     </nav>
   `;
@@ -172,6 +187,53 @@ function injectNavbar(currentIndex, total, alreadyCompleted, onNext) {
   console.log('[tijeux] navbar injected at index', currentIndex, '/', total);
 
   return shadow;
+}
+
+// Accumulates active play time (seconds while a supported-site tab is visible)
+// in chrome.storage.local.playTime = { date, seconds }, and ticks the navbar
+// timer. Frozen once all active games are done for the day; resets on a new date.
+// ponytail: two supported-site tabs visible at once (side-by-side windows)
+// double-count; add a tab-lease in storage if that ever matters.
+function initPlayTimer(navbarShadow, allDone, today) {
+  const timerEl = navbarShadow.getElementById('timer');
+  let done = allDone;
+  let baseSeconds = 0;   // flushed to storage
+  let segmentStart = null; // ms epoch of current visible segment, null when paused
+
+  const total = () =>
+    baseSeconds + (segmentStart ? Math.floor((Date.now() - segmentStart) / 1000) : 0);
+
+  function render() {
+    const s = total();
+    timerEl.textContent = `⏱ ${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+  }
+
+  // Fold the current segment into baseSeconds, persist, and start a new
+  // segment if we should still be counting.
+  function flush() {
+    baseSeconds = total();
+    segmentStart = !done && document.visibilityState === 'visible' ? Date.now() : null;
+    chrome.storage.local.set({ playTime: { date: today, seconds: baseSeconds } });
+    render();
+  }
+
+  chrome.storage.local.get(['playTime'], ({ playTime }) => {
+    if (playTime?.date === today) baseSeconds = playTime.seconds;
+    if (!done && document.visibilityState === 'visible') segmentStart = Date.now();
+    render();
+    setInterval(render, 1000);
+    // Periodic flush so a hard tab kill loses at most 15s.
+    setInterval(() => { if (segmentStart) flush(); }, 15000);
+    document.addEventListener('visibilitychange', flush);
+    window.addEventListener('pagehide', flush);
+  });
+
+  return {
+    markDone() {
+      done = true;
+      flush();
+    },
+  };
 }
 
 function showCompletionOverlay(activeSites, currentSite, today, currentCompleted) {
