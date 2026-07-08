@@ -1,7 +1,10 @@
 // Runs in MAIN world inside the Arkadium crossword iframe on arkadiumhosted.com.
-// Polls the iframe's own window.dataLayer for a Game_End entry and relays it
-// to the parent page (games.washingtonpost.com) via postMessage so that
-// content.js (running on the parent) can react via its messageCondition.
+// Polls for game completion and relays it to the parent page
+// (games.washingtonpost.com) via postMessage so that content.js (running on
+// the parent) can react via its messageCondition. Two independent signals:
+// - window.dataLayer gets a gtag 'Game_End' event (absent when analytics is
+//   blocked by ad blockers / declined cookie consent)
+// - the game's results dialog (gameEndPopup_* CSS-module classes) appears
 (function () {
   let acked = false;
   window.addEventListener('message', (e) => {
@@ -10,7 +13,10 @@
 
   const interval = setInterval(() => {
     const dl = window.dataLayer;
-    if (Array.isArray(dl) && dl.some((item) => item?.[1] === 'Game_End')) {
+    // ponytail: gameEndPopup also shows when reviewing an already-solved
+    // archive puzzle; scope the selector to today's puzzle if that ever bites.
+    if ((Array.isArray(dl) && dl.some((item) => item?.[1] === 'Game_End')) ||
+        document.querySelector('[class*="gameEndPopup"]')) {
       clearInterval(interval);
       const send = () =>
         window.parent.postMessage({ tijeux: 'game-end' }, 'https://games.washingtonpost.com');

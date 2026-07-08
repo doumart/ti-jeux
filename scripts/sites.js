@@ -56,7 +56,7 @@ const SITES = [
   {
     url: "https://games.washingtonpost.com/games/daily-crossword-mini",
     name: "WaPo Crossword",
-    // wapo-completion.js polls window.dataLayer for Game_End and relays via postMessage.
+    // wapo-iframe.js polls the game iframe for completion and relays via postMessage.
     messageCondition: (e) => e.data?.tijeux === 'game-end',
   },
   {
