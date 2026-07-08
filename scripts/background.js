@@ -14,8 +14,27 @@ function findCurrentIndex(sites, tabUrl) {
   });
 }
 
-chrome.runtime.onMessage.addListener((message, sender) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log('[tijeux] message received:', message.type, 'from:', sender.tab?.url);
+
+  // Fetch a Mini puzzle for a saved (file://) page — see mini-saved-bridge.js.
+  // The X-Games-Auth-Bypass header is what the game itself sends; it makes even
+  // dated archive puzzles fetchable anonymously. Responses are cached in
+  // storage.local so an already-opened puzzle replays offline.
+  if (message.type === 'fetch-mini') {
+    const url = message.date
+      ? `https://www.nytimes.com/svc/crosswords/v6/puzzle/mini/${message.date}.json`
+      : 'https://www.nytimes.com/svc/crosswords/v6/puzzle/mini.json';
+    const key = `mini-${message.date || 'today'}`;
+    fetch(url, { headers: { 'X-Games-Auth-Bypass': 'true' } })
+      .then((r) => (r.ok ? r.text() : Promise.reject(new Error(`HTTP ${r.status}`))))
+      .then((json) => {
+        chrome.storage.local.set({ [key]: json });
+        sendResponse({ json });
+      })
+      .catch(() => chrome.storage.local.get([key], (d) => sendResponse({ json: d[key] || null })));
+    return true; // async sendResponse
+  }
 
   if (message.type === 'navigate') {
     chrome.storage.sync.get(['states'], (data) => {

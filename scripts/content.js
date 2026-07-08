@@ -8,15 +8,16 @@ const currentSite = SITES.find((site) => matchesSite(location.href, site.url));
 console.log('[tijeux] current site:', currentSite?.url ?? 'not in carousel');
 
 // Arm the postMessage relay listener synchronously, BEFORE the async
-// storage.get below. The WaPo relay iframe (wapo-iframe.js) posts `game-end`
-// exactly once and never resends, so a listener attached late — after storage
-// resolves — can miss it entirely. Buffer the event until onCompleted is wired.
+// storage.get below. The WaPo relay iframe (wapo-iframe.js) resends `game-end`
+// until acked, but arming early still avoids a pointless resend window; buffer
+// the event until onCompleted is wired.
 let handleGameEnd = null;
 let gameEndPending = false;
 if (currentSite?.messageCondition) {
   window.addEventListener('message', function relayListener(e) {
     if (!currentSite.messageCondition(e)) return;
     window.removeEventListener('message', relayListener);
+    e.source?.postMessage({ tijeux: 'game-end-ack' }, e.origin);
     if (handleGameEnd) handleGameEnd();
     else gameEndPending = true;
   });

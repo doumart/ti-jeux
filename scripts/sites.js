@@ -15,7 +15,7 @@ function matchesSite(href, siteUrl) {
 const SITES = [
   {
     url: "https://www.nytimes.com/games/connections",
-    name: "NYT Connections",
+    name: "NYT Connections",   
     completedCondition: () =>
       Array.from(document.querySelectorAll('button')).some(
         (b) => b.textContent.trim() === 'Share Your Results' || b.textContent.trim() === 'Admire puzzle'

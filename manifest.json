@@ -42,10 +42,38 @@
     },
     {
       "matches": [
-        "*://www.nytimes.com/*"
+        "*://www.nytimes.com/crosswords/*"
       ],
       "js": [
         "scripts/crossword-patch.js"
+      ]
+    },
+    {
+      "matches": [
+        "*://www.nytimes.com/crosswords/*"
+      ],
+      "js": [
+        "scripts/mini-saved-main.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "file:///*"
+      ],
+      "js": [
+        "scripts/mini-saved-bridge.js",
+        "scripts/crossword-patch.js"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "file:///*"
+      ],
+      "js": [
+        "scripts/mini-saved-main.js"
       ],
       "run_at": "document_start",
       "world": "MAIN"

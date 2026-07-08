@@ -3,7 +3,8 @@
   "module": "index.ts",
   "type": "module",
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "playwright-core": "^1.61.1"
   },
   "peerDependencies": {
     "typescript": "^5"
