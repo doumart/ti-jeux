@@ -74,6 +74,13 @@ const SITES = [
       Array.from(document.querySelectorAll('.pr-game-results__components')).length >0
   },
   {
+    url: "https://www.linkedin.com/games/crossclimb/",
+    name: "Crossclimb",
+    // Same shared LinkedIn games results panel as Pinpoint.
+    completedCondition: () =>
+      document.querySelector('.pr-game-results__components') !== null
+  },
+  {
     url: "https://bandle.app",
     name: "Bandle",
     completedCondition: () =>
