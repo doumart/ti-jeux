@@ -42,6 +42,15 @@
     },
     {
       "matches": [
+        "*://www.nytimes.com/games/*",
+        "*://www.nytimes.com/crosswords/*"
+      ],
+      "js": [
+        "scripts/ad-skip.js"
+      ]
+    },
+    {
+      "matches": [
         "*://www.nytimes.com/crosswords/*"
       ],
       "js": [
@@ -87,6 +96,15 @@
       ],
       "run_at": "document_start",
       "world": "MAIN",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "*://www.linkedin.com/games/view/*"
+      ],
+      "js": [
+        "scripts/linkedin-iframe.js"
+      ],
       "all_frames": true
     }
   ]
