@@ -4,14 +4,12 @@ function getActiveSites(states) {
   return SITES.map((s) => s.url).filter((url) => states[url] !== false);
 }
 
+// matchesSite (sites.js) compares origin AND path prefix. Comparing origins
+// alone made same-origin siblings collide — both LinkedIn games, both NYT
+// games — so "next" from the second one resolved to the first one's index and
+// navigated back onto the page you were already on.
 function findCurrentIndex(sites, tabUrl) {
-  return sites.findIndex((url) => {
-    try {
-      return new URL(tabUrl).origin === new URL(url).origin;
-    } catch {
-      return false;
-    }
-  });
+  return sites.findIndex((url) => matchesSite(tabUrl, url));
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {

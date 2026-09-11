@@ -70,8 +70,15 @@ const SITES = [
   {
     url: "https://www.linkedin.com/games/pinpoint/",
     name: "Pinpoint",
-    completedCondition: () =>
-      Array.from(document.querySelectorAll('.pr-game-results__components')).length >0
+    // The game runs in a child iframe; linkedin-iframe.js watches the results
+    // panel there and relays completion via postMessage.
+    messageCondition: (e) => e.data?.tijeux === 'game-end',
+  },
+  {
+    url: "https://www.linkedin.com/games/crossclimb/",
+    name: "Crossclimb",
+    // Same iframe relay as Pinpoint.
+    messageCondition: (e) => e.data?.tijeux === 'game-end',
   },
   {
     url: "https://bandle.app",
