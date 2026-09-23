@@ -22,8 +22,12 @@ export type Config = { port: number; hostname: string; publicOrigin: string; cli
 
 export function startServer(config: Config, discordFetch: typeof fetch = fetch) {
   if (config.preview && config.hostname !== '127.0.0.1') throw new Error('Local preview must bind to 127.0.0.1.');
-  if (!config.preview && (!config.clientId || !config.clientSecret || !config.botToken || !/^[a-f0-9]{64}$/i.test(config.publicKey) || !config.publicOrigin.startsWith('https://'))) {
-    throw new Error('Set DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET, DISCORD_BOT_TOKEN, DISCORD_PUBLIC_KEY and PUBLIC_ORIGIN (HTTPS), or use LOCAL_PREVIEW=1.');
+  if (!config.preview) {
+    const bad = Object.entries({
+      DISCORD_CLIENT_ID: !!config.clientId, DISCORD_CLIENT_SECRET: !!config.clientSecret, DISCORD_BOT_TOKEN: !!config.botToken,
+      'DISCORD_PUBLIC_KEY (64 hex chars)': /^[a-f0-9]{64}$/i.test(config.publicKey), 'PUBLIC_ORIGIN (https://…)': config.publicOrigin.startsWith('https://'),
+    }).filter(([, ok]) => !ok).map(([name]) => name);
+    if (bad.length) throw new Error(`Missing or invalid: ${bad.join(', ')}. Or use LOCAL_PREVIEW=1.`);
   }
   // ponytail: one relay process, at most 100 rooms. Use shared room storage and a
   // media relay service if this grows beyond a small friends-and-family server.
@@ -223,6 +227,9 @@ export function startServer(config: Config, discordFetch: typeof fetch = fetch) 
 if (import.meta.main) {
   const preview = process.env.LOCAL_PREVIEW === '1';
   const port = Number(process.env.PORT || 3000);
-  const { server } = startServer({ port, hostname: preview ? '127.0.0.1' : (process.env.HOST || '0.0.0.0'), publicOrigin: process.env.PUBLIC_ORIGIN || `http://localhost:${port}`, clientId: process.env.DISCORD_CLIENT_ID || '', clientSecret: process.env.DISCORD_CLIENT_SECRET || '', botToken: process.env.DISCORD_BOT_TOKEN || '', publicKey: process.env.DISCORD_PUBLIC_KEY || '', preview });
+  const env = (name: string) => (process.env[name] || '').trim();
+  // Origins are compared exactly, so drop any pasted path or trailing slash.
+  const publicOrigin = URL.canParse(env('PUBLIC_ORIGIN')) ? new URL(env('PUBLIC_ORIGIN')).origin : `http://localhost:${port}`;
+  const { server } = startServer({ port, hostname: preview ? '127.0.0.1' : (env('HOST') || '0.0.0.0'), publicOrigin, clientId: env('DISCORD_CLIENT_ID'), clientSecret: env('DISCORD_CLIENT_SECRET'), botToken: env('DISCORD_BOT_TOKEN'), publicKey: env('DISCORD_PUBLIC_KEY'), preview });
   console.log(`ti-jeux Activity: ${server.url}${preview ? ' (local preview only)' : ''}`);
 }
