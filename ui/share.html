@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Share ti-jeux to Discord</title>
+  <link rel="stylesheet" href="../activity/style.css">
+</head>
+<body>
+  <main>
+    <h1>Share ti-jeux to Discord</h1>
+    <p id="game">Loading the selected game…</p>
+    <p>Launch ti-jeux in Discord and get your private sharing link. Only the Activity’s launcher can share.</p>
+    <form id="sharing">
+      <label>Private sharing link<input id="pairing" type="url" required autocomplete="off" spellcheck="false" placeholder="https://your-activity.example/#publish=…"></label>
+      <p>People in the Activity will see and hear this tab, including pages you navigate to next. Keep this sharing page open while you play.</p>
+      <button id="start" type="submit">Start sharing this game</button>
+      <button id="stop" type="button" disabled>Stop sharing</button>
+    </form>
+    <p id="status" role="status" aria-live="polite">Not sharing.</p>
+  </main>
+  <script src="../scripts/sites.js"></script>
+  <script src="../scripts/share.js"></script>
+</body>
+</html>

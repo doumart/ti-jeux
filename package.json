@@ -1,12 +1,22 @@
 {
   "name": "tijeux",
-  "module": "index.ts",
   "type": "module",
+  "scripts": {
+    "activity:build": "bun build activity/client.js --outdir dist/activity --target browser --minify",
+    "activity:start": "bun activity/server.ts",
+    "activity:dev": "bun run activity:build && LOCAL_PREVIEW=1 bun activity/server.ts",
+    "activity:register": "bun activity/register.ts",
+    "test": "bun test activity/server.test.ts",
+    "test:activity-browser": "bun tools/verify-activity.ts"
+  },
   "devDependencies": {
     "@types/bun": "latest",
     "playwright-core": "^1.61.1"
   },
   "peerDependencies": {
     "typescript": "^5"
+  },
+  "dependencies": {
+    "@discord/embedded-app-sdk": "^2.5.0"
   }
 }

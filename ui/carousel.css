@@ -17,6 +17,9 @@ body {
   display: none !important;
 }
 
+#sharing-footer { padding: 10px 16px; border-top: 1px solid #e8e8e8; }
+#share-discord { width: 100%; padding: 9px; border: 1px solid #ccc; border-radius: 5px; background: #f4f4f8; color: #1a1a2e; cursor: pointer; }
+
 /* ── Home view ── */
 
 #home-view {
