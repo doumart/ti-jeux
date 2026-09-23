@@ -3,11 +3,10 @@
   "type": "module",
   "scripts": {
     "activity:build": "bun build activity/client.js --outdir dist/activity --target browser --minify",
-    "activity:start": "bun activity/server.ts",
-    "activity:dev": "bun run activity:build && LOCAL_PREVIEW=1 bun activity/server.ts",
+    "activity:dev": "docker build -t tijeux-cloud . && docker run --rm --shm-size=1g -p 127.0.0.1:3000:3000 -e LOCAL_PREVIEW=1 -e PREVIEW_HOST=0.0.0.0 -v tijeux-profile:/data tijeux-cloud",
     "activity:register": "bun activity/register.ts",
     "test": "bun test activity/server.test.ts",
-    "test:activity-browser": "bun tools/verify-activity.ts"
+    "test:cloud": "bun tools/verify-cloud.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",

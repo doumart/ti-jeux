@@ -37,4 +37,7 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .omc/
 
 # local browser verification artifacts
-output/playwright/
+output/
+
+# cloud browser profile (game logins)
+.profile/

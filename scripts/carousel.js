@@ -2,13 +2,6 @@ function getMontrealDate() {
   return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Toronto' });
 }
 
-document.getElementById('share-discord').addEventListener('click', async () => {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  if (!tab?.id) return;
-  await chrome.tabs.create({ url: chrome.runtime.getURL(`ui/share.html?tab=${tab.id}`) });
-  window.close();
-});
-
 function isSiteCompletedToday(completions, url) {
   return completions[url] === getMontrealDate();
 }

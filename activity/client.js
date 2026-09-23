@@ -50,6 +50,8 @@ function startPlayer(mime) {
     try {
       if (buffer.buffered.length) {
         const end = buffer.buffered.end(buffer.buffered.length - 1);
+        // ffmpeg's live timestamps don't start at 0; jump to where the data begins.
+        if (video.currentTime < buffer.buffered.start(0)) video.currentTime = buffer.buffered.start(0);
         if (end - video.currentTime > 3) video.currentTime = Math.max(0, end - 0.8);
         if (!playing && end > 0.3) {
           playing = true;
@@ -91,7 +93,7 @@ function startPlayer(mime) {
   video.addEventListener('error', broken);
   video.src = url;
   $('sound').disabled = false;
-  report('Live · the host controls the game');
+  report(session.isHost ? 'Live · click the game to play, type to answer' : 'Live · the host is playing');
 }
 
 function connect() {
@@ -111,13 +113,14 @@ function connect() {
     const message = JSON.parse(data);
     if (message.type === 'ready') {
       heartbeat = setInterval(() => { if (ws.readyState === WebSocket.OPEN) ws.send('{"type":"ping"}'); }, 20_000);
-      report('Waiting for the host to share a game…');
+      report('Starting the games…');
     } else if (message.type === 'start') startPlayer(message.mime);
-    else if (message.type === 'stop') { stopPlayer(); report('The host stopped sharing. Waiting for them to return…'); }
+    else if (message.type === 'stop') { stopPlayer(); report('The games stopped.'); }
     else if (message.type === 'status') {
       $('game').textContent = message.game;
       $('progress').textContent = message.total ? `${message.completed} / ${message.total} done today` : '';
-      $('audience').textContent = `${message.hostName} hosting · ${message.viewers} watching`;
+      $('audience').textContent = `${message.hostName} hosting · ${message.viewers} here`;
+      if (message.note) report(message.note);
     }
   };
   ws.onerror = () => report('Cannot reach the sharing server.');
@@ -132,24 +135,57 @@ function connect() {
 function joined(result) {
   session = result;
   $('host').hidden = !result.isHost;
+  $('stage').classList.toggle('driving', result.isHost);
   connect();
 }
 
-$('pair').onclick = async () => {
-  $('pair').disabled = true;
-  try {
-    const { link } = await request('/api/pair', {}, session.token);
-    $('pair-link').value = link;
-    $('pair-label').hidden = false;
-    $('copy').hidden = false;
-    $('pair').textContent = 'Replace sharing link';
-  } catch (error) { report(error.message); }
-  finally { $('pair').disabled = false; }
-};
-$('copy').onclick = async () => {
-  try { await navigator.clipboard.writeText($('pair-link').value); report('Link copied. Paste it into the extension’s sharing page.'); }
-  catch { $('pair-link').select(); report('Copy the selected link and paste it into the extension’s sharing page.'); }
-};
+// Host input: positions are sent as 0–1 of the picture (letterboxing excluded).
+const sendInput = (event) => { if (session?.isHost && socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ type: 'input', ...event })); };
+function point(event) {
+  const box = video.getBoundingClientRect();
+  const scale = Math.min(box.width / (video.videoWidth || 16), box.height / (video.videoHeight || 9));
+  const width = (video.videoWidth || 16) * scale;
+  const height = (video.videoHeight || 9) * scale;
+  const x = (event.clientX - box.left - (box.width - width) / 2) / width;
+  const y = (event.clientY - box.top - (box.height - height) / 2) / height;
+  return x >= 0 && x <= 1 && y >= 0 && y <= 1 ? { x, y } : null;
+}
+const buttons = ['left', 'middle', 'right'];
+let lastMove = 0;
+let wheel = null;
+video.addEventListener('pointerdown', (event) => {
+  const at = point(event);
+  if (!at || !buttons[event.button]) return;
+  $('stage').focus();
+  video.setPointerCapture(event.pointerId);
+  sendInput({ kind: 'down', button: buttons[event.button], ...at });
+});
+video.addEventListener('pointerup', (event) => {
+  const at = point(event);
+  if (at && buttons[event.button]) sendInput({ kind: 'up', button: buttons[event.button], ...at });
+});
+video.addEventListener('pointermove', (event) => {
+  const at = point(event);
+  if (!at || Date.now() - lastMove < 50) return;
+  lastMove = Date.now();
+  sendInput({ kind: 'move', ...at });
+});
+video.addEventListener('wheel', (event) => {
+  const at = point(event);
+  if (!at || !session?.isHost) return;
+  event.preventDefault();
+  if (wheel) { wheel.dx += event.deltaX; wheel.dy += event.deltaY; return; }
+  wheel = { kind: 'wheel', ...at, dx: event.deltaX, dy: event.deltaY };
+  setTimeout(() => { const clamp = (v) => Math.max(-5000, Math.min(5000, v)); sendInput({ ...wheel, dx: clamp(wheel.dx), dy: clamp(wheel.dy) }); wheel = null; }, 50);
+}, { passive: false });
+video.addEventListener('contextmenu', (event) => { if (session?.isHost) event.preventDefault(); });
+for (const type of ['keydown', 'keyup']) {
+  $('stage').addEventListener(type, (event) => {
+    if (!session?.isHost || event.key.length > 24 || ['Unidentified', 'Dead', 'Process'].includes(event.key)) return;
+    event.preventDefault();
+    sendInput({ kind: type, key: event.key });
+  });
+}
 $('sound').onclick = () => { video.muted = !video.muted; video.play().catch(() => {}); };
 video.onvolumechange = () => { $('sound').textContent = video.muted ? 'Enable sound' : 'Mute sound'; };
 $('reconnect').onclick = connect;
