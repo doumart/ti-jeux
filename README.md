@@ -52,9 +52,7 @@ Free tier has an Arm VM that does.
    - *OAuth2 → Redirects*: `https://127.0.0.1`.
    - *General Information → Interactions Endpoint URL*: `https://<domain>/api/interactions`.
 5. `bun run activity:register` (with `DISCORD_CLIENT_ID` and `DISCORD_BOT_TOKEN` set).
-6. In a voice channel: 🚀 Activities → ti-jeux. First time: log into NYT / LinkedIn
-   inside the stream (best done alone, others would see what you type except
-   password dots). The logins stay in the `profile` Docker volume.
+6. In a voice channel: 🚀 Activities → ti-jeux.
 
 Updating: `git pull && sudo docker compose up -d --build`.
 
