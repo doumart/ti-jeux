@@ -17,3 +17,8 @@ button.big:hover:not(:disabled) { background: #4752c4; }
 video { display: block; width: 100%; height: 100%; object-fit: contain; }
 #splash { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 16px; text-align: center; background: #171923; }
 [hidden] { display: none !important; }
+/* Bottom-left, beside the centered game navbar, clear of the sites' own menus; over the splash too. */
+.music { position: fixed; bottom: 4px; left: 8px; z-index: 1; display: flex; align-items: center; gap: 8px; padding: 4px 8px; border-radius: 8px; background: rgba(8, 10, 16, .75); opacity: .6; }
+.music:hover, .music:focus-within { opacity: 1; }
+.music button { padding: 4px 10px; font-size: 14px; }
+.music input { display: inline; width: 100px; padding: 0; border: 0; background: none; }

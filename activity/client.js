@@ -192,27 +192,52 @@ for (const type of ['keydown', 'keyup']) {
     sendInput({ kind: type, key: event.key });
   });
 }
-// Start-screen playlist in random order, never the same song twice in a row.
+// Playlist in random order, never the same song twice in a row. It keeps playing
+// during the games; each viewer turns it off or sets its volume for themselves.
 const songs = ['theme.mp3', 'bozo.mp3', 'wordle.mp3'];
 let song = Math.floor(Math.random() * songs.length);
 theme.src = `/.proxy/${songs[song]}`;
 theme.onended = () => {
   song = (song + 1 + Math.floor(Math.random() * (songs.length - 1))) % songs.length;
   theme.src = `/.proxy/${songs[song]}`;
-  theme.play().catch(() => {});
+  if (music.on) theme.play().catch(() => {});
 };
+// Remembered per viewer; storage can be blocked in the Discord frame, so it is optional.
+const music = { on: true, volume: 0.5 };
+try {
+  const saved = JSON.parse(localStorage.getItem('music')) || {};
+  music.on = saved.on !== false;
+  if (Number.isFinite(saved.volume)) music.volume = Math.min(1, Math.max(0, saved.volume));
+} catch {}
+const saveMusic = () => { try { localStorage.setItem('music', JSON.stringify(music)); } catch {} };
+function showMusic() {
+  theme.volume = music.volume;
+  $('music-volume').value = music.volume;
+  $('music-toggle').textContent = music.on ? '♪ Music on' : '♪ Music off';
+  $('music-toggle').setAttribute('aria-pressed', String(music.on));
+}
+showMusic();
+$('music-toggle').onclick = () => {
+  music.on = !music.on;
+  if (music.on) theme.play().catch(() => {}); else theme.pause();
+  showMusic();
+  saveMusic();
+  if (started) $('stage').focus(); // keys go back to the game
+};
+$('music-volume').oninput = () => {
+  music.volume = Number($('music-volume').value);
+  showMusic();
+  saveMusic();
+};
+$('music-volume').onchange = () => { if (started) $('stage').focus(); };
 // Autoplay can be blocked until the first click; the music then starts on that click.
-theme.play().catch(() => addEventListener('pointerdown', () => { if (!started) theme.play().catch(() => {}); }, { once: true }));
+if (music.on) theme.play().catch(() => addEventListener('pointerdown', () => { if (music.on) theme.play().catch(() => {}); }, { once: true }));
 $('start').onclick = () => {
   started = true;
   $('splash').hidden = true;
   $('stage').focus();
   video.muted = false;
   video.play().catch(() => {});
-  const fade = setInterval(() => {
-    theme.volume = Math.max(0, theme.volume - 0.1);
-    if (theme.volume === 0) { clearInterval(fade); theme.pause(); }
-  }, 80);
 };
 $('reconnect').onclick = connect;
 $('create').onclick = async () => {

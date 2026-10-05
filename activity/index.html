@@ -19,6 +19,10 @@
     <button id="start" class="big" disabled>Start</button>
     <button id="reconnect" hidden>Reconnect</button>
   </section>
+  <div class="music">
+    <button id="music-toggle" aria-pressed="true">♪ Music on</button>
+    <input id="music-volume" type="range" min="0" max="1" step="0.05" aria-label="Music volume">
+  </div>
   <audio id="theme" preload="auto"></audio>
   <script type="module" src="/.proxy/client.js?v=__VERSION__"></script>
 </body>
