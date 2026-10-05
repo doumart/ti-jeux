@@ -4,9 +4,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends xvfb pulseaudio
 WORKDIR /app
 COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile
-# Chromium plus its system libraries, from the same Playwright version the server uses.
-ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
-RUN bunx playwright-core install --with-deps chromium && rm -rf /var/lib/apt/lists/*
+# Debian's Chromium, not Playwright's: Playwright's Linux build has no AAC or H.264,
+# so Guess the Audio's iTunes clips (.m4a) never load.
+RUN apt-get update && apt-get install -y --no-install-recommends chromium && rm -rf /var/lib/apt/lists/*
+ENV CHROMIUM_PATH=/usr/bin/chromium
 # uBlock Origin Lite blocks the ads and the cookie banners that a fresh profile shows.
 # Its cookie and overlay lists are off by default; turn them on. Chromium writes the
 # indexed rulesets into the folder, so the bun user must own it.
