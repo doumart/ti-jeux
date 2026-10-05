@@ -1,0 +1,6 @@
+name: ti-jeux
+description: ti-jeux Discord Activity on AWS, stopped until someone launches it
+# Install packages with: bun install
+runtime: nodejs
+config:
+  aws:region: ca-central-1

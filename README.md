@@ -37,7 +37,7 @@ Free tier has an Arm VM that does.
    availability domain or later.
    In its VCN's *Security List*, add ingress rules for TCP **80** and **443** from `0.0.0.0/0`.
 2. **Free domain**: at [duckdns.org](https://www.duckdns.org) create e.g.
-   `tijeux.duckdns.org` pointing to the VM's public IP.
+   `ti-jeux.duckdns.org` pointing to the VM's public IP.
 3. **On the VM**:
    ```bash
    git clone -b feat/discord-activity https://github.com/doumart/ti-jeux.git && cd ti-jeux
@@ -57,6 +57,36 @@ Free tier has an Arm VM that does.
    password dots). The logins stay in the `profile` Docker volume.
 
 Updating: `git pull && sudo docker compose up -d --build`.
+
+### Deploy (AWS, off when not playing)
+
+About US$1.50 a month for 15 minutes a day. The EC2 instance stays stopped. A Lambda
+receives Discord's launch request: it starts the instance if it's stopped, and forwards
+the request once it's running. The instance stops itself after 5 idle minutes.
+
+1. **Free domain**: create one at [duckdns.org](https://www.duckdns.org).
+2. **Stack** (from your laptop, AWS CLI signed in, [Pulumi](https://www.pulumi.com/docs/install/) installed):
+   ```bash
+   cd aws && bun install
+   pulumi stack init nexapp
+   pulumi config set domain ti-jeux.duckdns.org
+   pulumi config set --secret discordPublicKey <DISCORD_PUBLIC_KEY>
+   AWS_PROFILE=<profile> pulumi up
+   ```
+   It prints `interactionsEndpointUrl` and `instanceId`. The region is `ca-central-1` (`aws/Pulumi.yaml`).
+3. **On the instance**: AWS console → EC2 → ti-jeux → *Connect* → *Session Manager*.
+   An open session keeps the instance up.
+   ```bash
+   cd /opt/ti-jeux && sudo nano .env   # Discord values, DOMAIN, PUBLIC_ORIGIN, DUCKDNS_TOKEN
+   sudo aws/duckdns.sh && sudo docker compose up -d --build
+   ```
+   Check `https://<domain>/health`. Then do step 4 and 5 of the Oracle section, but use
+   `interactionsEndpointUrl` as the *Interactions Endpoint URL*.
+4. **Play**: the first launch of the day answers "Waking up the server". Launch again
+   after about a minute.
+
+Updating: open a session, then `cd /opt/ti-jeux && sudo git pull && sudo docker compose up -d --build`.
+Infrastructure changes: `cd aws && pulumi up`.
 
 ### Tests
 

@@ -5,7 +5,7 @@
     "activity:build": "bun build activity/client.js --outdir dist/activity --target browser --minify",
     "activity:dev": "docker build -t tijeux-cloud . && docker run --rm --shm-size=1g -p 127.0.0.1:3000:3000 -e LOCAL_PREVIEW=1 -e PREVIEW_HOST=0.0.0.0 -v tijeux-profile:/data tijeux-cloud",
     "activity:register": "bun activity/register.ts",
-    "test": "bun test activity/server.test.ts",
+    "test": "bun test activity/server.test.ts aws/wake.test.ts",
     "test:cloud": "bun tools/verify-cloud.ts"
   },
   "devDependencies": {
