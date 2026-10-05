@@ -7,6 +7,8 @@
 
   const REJECT = /^reject( all)?$/i;
 
+  // Clicks before NYT's page has hydrated do nothing, so keep clicking while the
+  // button is visible; the banner then hides and the clicks stop.
   function reject() {
     for (const btn of document.querySelectorAll('button')) {
       if (!REJECT.test(btn.textContent.trim()) || !btn.offsetParent) continue;
@@ -16,7 +18,8 @@
     }
   }
 
-  // Same pattern as ad-skip.js: the banner is inserted after load.
-  new MutationObserver(reject).observe(document, { childList: true, subtree: true });
+  // Poll, like ad-skip.js: the banner is inserted after load, and a subtree
+  // MutationObserver ran this (offsetParent forces a layout) on every DOM change.
+  setInterval(reject, 500);
   reject();
 })();

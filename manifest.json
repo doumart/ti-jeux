@@ -60,6 +60,22 @@
     },
     {
       "matches": [
+        "*://www.nytimes.com/games/*",
+        "*://www.nytimes.com/crosswords/*",
+        "*://games.washingtonpost.com/*",
+        "*://guessthe.game/*",
+        "*://guessthemovie.name/*",
+        "*://guesstheaudio.com/*",
+        "*://bandle.app/*",
+        "*://glyph.today/*",
+        "*://www.theatlantic.com/games/*"
+      ],
+      "css": [
+        "ui/ads.css"
+      ]
+    },
+    {
+      "matches": [
         "*://www.nytimes.com/crosswords/*"
       ],
       "js": [

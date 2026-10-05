@@ -5,6 +5,8 @@ import { chromium, type BrowserContext, type Page } from 'playwright-core';
 export const MIME = 'video/webm;codecs=vp8,vorbis';
 export const WIDTH = 1280;
 export const HEIGHT = 720;
+// ponytail: 24 fps fits a t4g.medium beside Chromium; lower it if the encoder can't keep up.
+const FPS = 24;
 export type Metadata = { game: string; completed: number; total: number };
 export type Input =
   | { kind: 'move'; x: number; y: number }
@@ -76,11 +78,13 @@ export function createCloud(extension: string, profile: string): Cloud {
       // Audio opens first: pulse takes ~2 s to start and would otherwise leave a hole in the video timeline.
       const ffmpeg = Bun.spawn(['ffmpeg', '-loglevel', 'error',
         '-thread_queue_size', '512', '-f', 'pulse', '-i', 'out.monitor',
-        '-thread_queue_size', '512', '-f', 'x11grab', '-draw_mouse', '0', '-framerate', '15', '-video_size', `${WIDTH}x${HEIGHT}`, '-i', process.env.DISPLAY || ':99',
-        '-map', '1:v', '-map', '0:a', '-c:v', 'libvpx', '-deadline', 'realtime', '-cpu-used', '8', '-b:v', '1500k', '-g', '30', '-auto-alt-ref', '0', '-lag-in-frames', '0',
+        '-thread_queue_size', '512', '-f', 'x11grab', '-draw_mouse', '0', '-framerate', String(FPS), '-video_size', `${WIDTH}x${HEIGHT}`, '-i', process.env.DISPLAY || ':99',
+        '-map', '1:v', '-map', '0:a', '-c:v', 'libvpx', '-deadline', 'realtime', '-cpu-used', '8', '-b:v', '2000k', '-g', String(FPS * 2), '-auto-alt-ref', '0', '-lag-in-frames', '0',
         // Chromium's WebM parser rejects any block older than the one before it, across tracks:
         // strict interleaving, and Vorbis (the muxer shifts Opus blocks by its codec delay after interleaving).
-        '-c:a', 'libvorbis', '-b:a', '96k', '-max_interleave_delta', '0', '-f', 'webm', '-cluster_time_limit', '500', 'pipe:1'], { stdout: 'pipe', stderr: 'inherit' });
+        '-c:a', 'libvorbis', '-b:a', '96k', '-max_interleave_delta', '0',
+        // Short clusters, flushed at once: each cluster waits in ffmpeg until it closes, so its length is added lag.
+        '-f', 'webm', '-live', '1', '-cluster_time_limit', '100', '-flush_packets', '1', 'pipe:1'], { stdout: 'pipe', stderr: 'inherit' });
       let stopped = false;
       // Bytes still buffered from a killed encoder must never reach a player of the next stream.
       void (async () => { for await (const chunk of ffmpeg.stdout) if (!stopped) onChunk(chunk); })().catch(() => {});

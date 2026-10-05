@@ -55,7 +55,10 @@ function startPlayer(mime) {
         const end = buffer.buffered.end(buffer.buffered.length - 1);
         // ffmpeg's live timestamps don't start at 0; jump to where the data begins.
         if (video.currentTime < buffer.buffered.start(0)) video.currentTime = buffer.buffered.start(0);
-        if (end - video.currentTime > 3) video.currentTime = Math.max(0, end - 0.8);
+        // Stay near the live edge: speed up a little when behind, jump when far behind.
+        const behind = end - video.currentTime;
+        if (behind > 1.5) video.currentTime = Math.max(0, end - 0.2);
+        else video.playbackRate = behind > 0.4 ? 1.15 : 1;
         if (!playing && end > 0.3) {
           playing = true;
           video.play().catch(() => { playing = false; report('Press play to watch the host’s game.'); });

@@ -87,14 +87,13 @@ if (!currentSite) {
       }
 
       if (currentSite.completedCondition) {
-        const observer = new MutationObserver(() => {
-          if (!triggered && currentSite.completedCondition()) {
-            observer.disconnect();
-            onCompleted();
-          }
-        });
-        observer.observe(document.body, { childList: true, subtree: true });
-        if (!triggered && currentSite.completedCondition()) { observer.disconnect(); onCompleted(); }
+        // Poll, not a MutationObserver: games mutate the DOM every frame, and
+        // conditions scan every button/div, so per-mutation checks made pages lag.
+        const check = () => {
+          if (triggered || currentSite.completedCondition()) { clearInterval(poll); onCompleted(); }
+        };
+        const poll = setInterval(check, 1000);
+        check();
       }
 
       if (currentSite.messageCondition) {
@@ -132,8 +131,8 @@ function injectNavbar(currentIndex, total, alreadyCompleted, onNext) {
         justify-content: center;
         gap: 12px;
         padding: 6px 16px;
-        background: rgba(20, 20, 20, 0.85);
-        backdrop-filter: blur(6px);
+        /* No backdrop-filter: blurring the live game under a fixed bar re-composites every frame. */
+        background: rgba(20, 20, 20, 0.95);
         color: #fff;
         font: 13px/1 system-ui, sans-serif;
         pointer-events: all;
