@@ -4,3 +4,5 @@ description: ti-jeux Discord Activity on AWS, stopped until someone launches it
 runtime: nodejs
 config:
   aws:region: ca-central-1
+backend:
+  url: file://~
