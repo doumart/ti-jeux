@@ -135,6 +135,10 @@ test('signed launch, membership, host-only control, one cloud browser shared acr
     assert.equal((await request(base + '/.env')).status, 404);
     assert.equal((await request(base + '/api/config')).status, 200);
     assert.equal((await request(base + '/.proxy/api/config')).status, 200);
+    // The page versions its script and style URLs so Discord can't serve stale copies.
+    const page = await request(base + '/.proxy/');
+    assert.match(page.headers.get('content-type') || '', /^text\/html/);
+    assert.match(await page.text(), /client\.js\?v=[0-9a-z]+"/);
   } finally {
     for (const ws of peers) ws.close();
     // Bun 1.3.5 closes the listener but never resolves stop() after ws.close().

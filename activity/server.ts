@@ -125,6 +125,7 @@ export function startServer(config: Config, cloud: Cloud, discordFetch: typeof f
     const origin = req.headers.get('origin');
     return !!origin && (allowedOrigins.has(origin) || (config.preview && /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin)));
   };
+  const version = Date.now().toString(36);
   const server = Bun.serve<Socket['data']>({
     port: config.port, hostname: config.hostname, maxRequestBodySize: 16 * 1024,
     async fetch(req, server) {
@@ -188,7 +189,9 @@ export function startServer(config: Config, cloud: Cloud, discordFetch: typeof f
         if (!files[path]) return json({ error: 'Not found.' }, 404);
         const file = Bun.file(new URL(files[path], import.meta.url));
         if (!await file.exists()) fail(503, 'Run bun run activity:build first.');
-        return new Response(file, { headers: { 'Cache-Control': 'no-cache', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer', 'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; media-src 'self' blob:; img-src 'self' data:; object-src 'none'; base-uri 'none'" } });
+        // Discord caches the page's scripts and styles; a new URL per server start skips stale copies.
+        const content = path === '/' ? (await file.text()).replaceAll('__VERSION__', version) : file;
+        return new Response(content, { headers: { ...(path === '/' && { 'Content-Type': 'text/html;charset=utf-8' }), 'Cache-Control': 'no-cache', 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer', 'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; media-src 'self' blob:; img-src 'self' data:; object-src 'none'; base-uri 'none'" } });
       } catch (error) {
         const e = error as Error & { status?: number };
         return json({ error: e.status ? e.message : 'Request failed.' }, e.status || 500);
