@@ -1,26 +1,19 @@
-:root { color-scheme: dark; font: 16px/1.5 system-ui, sans-serif; background: #171923; color: #f1f2f6; }
+:root { color-scheme: dark; font: 16px/1.5 system-ui, sans-serif; background: #080a10; color: #f1f2f6; }
 * { box-sizing: border-box; }
-body { margin: 0; }
-main { max-width: 1200px; margin: auto; padding: 20px; }
-header, footer { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-header { justify-content: space-between; }
-h1 { font-size: 24px; margin: 0; }
-h1 span, .hint, #audience, #progress { color: #b5bad0; }
-h2 { font-size: 18px; margin: 0; }
-section { background: #252938; border: 1px solid #40475f; padding: 16px; border-radius: 10px; margin-bottom: 16px; }
-p { margin: 10px 0; }
+body { margin: 0; height: 100vh; overflow: hidden; background: #080a10; }
+h1 { font-size: 40px; margin: 0; }
+p { margin: 0; }
+.dim { color: #b5bad0; min-height: 1.5em; }
 label { display: block; margin-top: 12px; }
-input { display: block; width: 100%; padding: 10px; border: 1px solid #69718c; border-radius: 6px; color: inherit; background: #171923; font: inherit; }
+input { display: block; width: min(480px, 90vw); padding: 10px; border: 1px solid #69718c; border-radius: 6px; color: inherit; background: #171923; font: inherit; }
 button { padding: 9px 14px; border: 1px solid #69718c; border-radius: 6px; color: white; background: #3d4664; font: inherit; cursor: pointer; }
 button:hover { background: #505c80; }
 button:disabled { opacity: .5; cursor: default; }
+button.big { font-size: 22px; padding: 14px 48px; background: #5865f2; border-color: #5865f2; }
+button.big:hover:not(:disabled) { background: #4752c4; }
 :focus-visible { outline: 3px solid #a9baff; outline-offset: 3px; }
+.stage { position: fixed; inset: 0; outline: none; }
 .stage.driving video { cursor: pointer; }
-.stage { background: #080a10; border: 1px solid #40475f; border-radius: 10px; overflow: hidden; }
-video { display: block; width: 100%; max-height: 65vh; min-height: 200px; aspect-ratio: 16 / 9; object-fit: contain; }
-footer { padding-top: 12px; }
-footer > div { flex: 1; }
-#progress { margin-left: 12px; }
-.hint { font-size: 13px; }
+video { display: block; width: 100%; height: 100%; object-fit: contain; }
+#splash { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 16px; text-align: center; background: #171923; }
 [hidden] { display: none !important; }
-@media (max-width: 500px) { main { padding: 12px; } video { min-height: 130px; } }

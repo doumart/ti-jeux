@@ -51,6 +51,15 @@
     },
     {
       "matches": [
+        "*://www.nytimes.com/*",
+        "*://www.linkedin.com/*"
+      ],
+      "js": [
+        "scripts/consent.js"
+      ]
+    },
+    {
+      "matches": [
         "*://www.nytimes.com/crosswords/*"
       ],
       "js": [

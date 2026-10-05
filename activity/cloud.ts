@@ -52,7 +52,9 @@ export function createCloud(extension: string, profile: string): Cloud {
       void context.newPage().then((next) => { watch(next); return home(); }).catch(() => {}).finally(() => { respawning = false; });
     });
   };
-  const worker = async () => context.serviceWorkers()[0] || context.waitForEvent('serviceworker', { timeout: 5000 });
+  // Other extensions (uBlock Origin Lite) have workers too; ours runs scripts/background.js.
+  const ours = (w: { url(): string }) => w.url().endsWith('/scripts/background.js');
+  const worker = async () => context.serviceWorkers().find(ours) || context.waitForEvent('serviceworker', { predicate: ours, timeout: 5000 });
   const boot = () => booting ??= (async () => {
     context = await chromium.launchPersistentContext(profile, {
       headless: false, viewport: null, acceptDownloads: false, executablePath: process.env.CHROMIUM_PATH || undefined,

@@ -26,7 +26,10 @@ try {
   await host.goto(origin);
   await host.getByRole('button', { name: 'Create preview session' }).click();
   await waitVideo(host);
-  console.log('PASS: host sees live 1280×720 video from the cloud browser');
+  await host.waitForFunction(() => !document.getElementById('theme')!.paused);
+  await host.getByRole('button', { name: 'Start' }).click();
+  assert.equal(await host.locator('#splash').isVisible(), false);
+  console.log('PASS: theme plays on the start screen; Start shows the live 1280×720 video full screen');
   await host.waitForFunction(() => document.getElementById('game')!.textContent === 'NYT Connections', null, { timeout: 30_000 });
   assert.match(await host.locator('#progress').innerText(), /^\d+ \/ 11 done today$/);
   console.log('PASS: game name and progress come from the extension inside the cloud browser');
@@ -35,8 +38,7 @@ try {
   await viewer.goto(await host.locator('#invite').inputValue());
   await waitVideo(viewer);
   await waitVideo(host);
-  assert.equal(await viewer.locator('#host').isVisible(), false);
-  await viewer.getByRole('button', { name: 'Enable sound' }).click();
+  await viewer.getByRole('button', { name: 'Start' }).click();
   await viewer.waitForFunction(() => (document.querySelector('video') as any).webkitAudioDecodedByteCount > 0, null, { timeout: 20_000 });
   console.log('PASS: late viewer gets video and audio; host stream recovers');
 

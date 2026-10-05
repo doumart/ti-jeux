@@ -2,9 +2,11 @@ import { DiscordSDK } from '@discord/embedded-app-sdk';
 
 const $ = (id) => document.getElementById(id);
 const video = $('video');
+const theme = $('theme');
 const embedded = new URLSearchParams(location.search).has('frame_id');
 const prefix = embedded ? '/.proxy' : '';
 let session;
+let started = false;
 let socket;
 let heartbeat;
 let disposePlayer = () => {};
@@ -23,7 +25,7 @@ function stopPlayer() {
   receiveMedia = () => {};
   video.removeAttribute('src');
   video.load();
-  $('sound').disabled = true;
+  $('start').disabled = true;
 }
 
 function startPlayer(mime) {
@@ -44,6 +46,7 @@ function startPlayer(mime) {
     stopPlayer();
     report('Playback interrupted. Reconnect to resume the live game.');
     $('reconnect').hidden = false;
+    $('splash').hidden = false;
   };
   const pump = () => {
     if (disposed || !buffer || buffer.updating || source.readyState !== 'open') return;
@@ -92,8 +95,9 @@ function startPlayer(mime) {
   }, { once: true });
   video.addEventListener('error', broken);
   video.src = url;
-  $('sound').disabled = false;
-  report(session.isHost ? 'Live · click the game to play, type to answer' : 'Live · the host is playing');
+  $('start').disabled = false;
+  report(session.isHost ? 'Ready. You drive: click the game to play, type to answer.' : 'Ready. The host is playing.');
+  if (started) $('splash').hidden = true;
 }
 
 function connect() {
@@ -115,11 +119,10 @@ function connect() {
       heartbeat = setInterval(() => { if (ws.readyState === WebSocket.OPEN) ws.send('{"type":"ping"}'); }, 20_000);
       report('Starting the games…');
     } else if (message.type === 'start') startPlayer(message.mime);
-    else if (message.type === 'stop') { stopPlayer(); report('The games stopped.'); }
+    else if (message.type === 'stop') { stopPlayer(); report('The games stopped.'); $('splash').hidden = false; }
     else if (message.type === 'status') {
       $('game').textContent = message.game;
       $('progress').textContent = message.total ? `${message.completed} / ${message.total} done today` : '';
-      $('audience').textContent = `${message.hostName} hosting · ${message.viewers} here`;
       if (message.note) report(message.note);
     }
   };
@@ -129,12 +132,12 @@ function connect() {
     stopPlayer();
     report(event.reason || 'Disconnected. Reconnect to resume watching.');
     $('reconnect').hidden = false;
+    $('splash').hidden = false;
   };
 }
 
 function joined(result) {
   session = result;
-  $('host').hidden = !result.isHost;
   $('stage').classList.toggle('driving', result.isHost);
   connect();
 }
@@ -186,8 +189,28 @@ for (const type of ['keydown', 'keyup']) {
     sendInput({ kind: type, key: event.key });
   });
 }
-$('sound').onclick = () => { video.muted = !video.muted; video.play().catch(() => {}); };
-video.onvolumechange = () => { $('sound').textContent = video.muted ? 'Enable sound' : 'Mute sound'; };
+// Start-screen playlist in random order, never the same song twice in a row.
+const songs = ['theme.mp3', 'bozo.mp3', 'wordle.mp3'];
+let song = Math.floor(Math.random() * songs.length);
+theme.src = `/.proxy/${songs[song]}`;
+theme.onended = () => {
+  song = (song + 1 + Math.floor(Math.random() * (songs.length - 1))) % songs.length;
+  theme.src = `/.proxy/${songs[song]}`;
+  theme.play().catch(() => {});
+};
+// Autoplay can be blocked until the first click; the music then starts on that click.
+theme.play().catch(() => addEventListener('pointerdown', () => { if (!started) theme.play().catch(() => {}); }, { once: true }));
+$('start').onclick = () => {
+  started = true;
+  $('splash').hidden = true;
+  $('stage').focus();
+  video.muted = false;
+  video.play().catch(() => {});
+  const fade = setInterval(() => {
+    theme.volume = Math.max(0, theme.volume - 0.1);
+    if (theme.volume === 0) { clearInterval(fade); theme.pause(); }
+  }, 80);
+};
 $('reconnect').onclick = connect;
 $('create').onclick = async () => {
   $('create').disabled = true;

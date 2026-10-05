@@ -184,7 +184,7 @@ export function startServer(config: Config, cloud: Cloud, discordFetch: typeof f
           fail(400, 'WebSocket upgrade required.');
         }
         if (req.method !== 'GET') return json({ error: 'Not found.' }, 404);
-        const files: Record<string, string> = { '/': '../activity/index.html', '/client.js': '../dist/activity/client.js', '/style.css': '../activity/style.css' };
+        const files: Record<string, string> = { '/': '../activity/index.html', '/client.js': '../dist/activity/client.js', '/style.css': '../activity/style.css', '/theme.mp3': '../activity/theme.mp3', '/bozo.mp3': '../activity/bozo.mp3', '/wordle.mp3': '../activity/wordle.mp3' };
         if (!files[path]) return json({ error: 'Not found.' }, 404);
         const file = Bun.file(new URL(files[path], import.meta.url));
         if (!await file.exists()) fail(503, 'Run bun run activity:build first.');
@@ -273,7 +273,8 @@ if (import.meta.main) {
   // Origins are compared exactly, so drop any pasted path or trailing slash.
   const publicOrigin = URL.canParse(env('PUBLIC_ORIGIN')) ? new URL(env('PUBLIC_ORIGIN')).origin : `http://localhost:${port}`;
   const root = new URL('..', import.meta.url).pathname;
-  const cloud = createCloud(root, env('PROFILE_DIR') || `${root}.profile`);
+  // UBOL_DIR: uBlock Origin Lite, loaded next to ti-jeux (the Docker image sets it).
+  const cloud = createCloud([root, env('UBOL_DIR')].filter(Boolean).join(','), env('PROFILE_DIR') || `${root}.profile`);
   // Preview has no sign-in, so it listens on loopback unless PREVIEW_HOST says otherwise (Docker dev).
   const hostname = preview ? (env('PREVIEW_HOST') || '127.0.0.1') : (env('HOST') || '0.0.0.0');
   const { server } = startServer({ port, hostname, publicOrigin, clientId: env('DISCORD_CLIENT_ID'), clientSecret: env('DISCORD_CLIENT_SECRET'), botToken: env('DISCORD_BOT_TOKEN'), publicKey: env('DISCORD_PUBLIC_KEY'), preview, hosts: env('HOSTS').split(',').filter(Boolean) }, cloud);
