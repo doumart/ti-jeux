@@ -1,0 +1,5 @@
+config:
+  ti-jeux:domain: ti-jeux.duckdns.org
+  ti-jeux:discordPublicKey:
+    secure: v1:O3a8OmrWClM+khSb:XNegDBdF9zP8ua1GmVEShP/g1HDpuYkiES9JEZP36ipCwn25I1aNo+FqekeJmISyBHt6+jIdWeaDsYN8BrdaXtpm62+dXL/TSteQAXfG0nc=
+encryptionsalt: v1:OTeEUtjCQX4=:v1:c9FsjU1im20yTI+t:XUzXUjGeP/eDqWiGE2xT6b5igjfhZQ==

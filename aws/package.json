@@ -1,0 +1,11 @@
+{
+  "name": "tijeux-aws",
+  "private": true,
+  "main": "index.ts",
+  "devDependencies": {
+    "@pulumi/aws": "^7.48.0",
+    "@pulumi/pulumi": "^3.267.0",
+    "@types/node": "^22",
+    "typescript": "^5"
+  }
+}
