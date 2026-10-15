@@ -1,11 +1,22 @@
 # ti-jeux
 
-Chrome extension that rotates through daily web games, plus a Discord Activity
-("ti-jeux together") where a voice channel plays them together.
+Chrome and Firefox extension that rotates through daily web games, plus a Discord
+Activity ("ti-jeux together") where a voice channel plays them together.
 
 ## Extension
 
-`chrome://extensions` → Developer mode → **Load unpacked** → this folder.
+**Chrome**: `chrome://extensions` → Developer mode → **Load unpacked** → this folder.
+
+**Firefox** (128 or later):
+
+```bash
+bun run firefox:build   # writes dist/firefox and dist/ti-jeux-firefox.zip
+```
+
+`about:debugging#/runtime/this-firefox` → **Load Temporary Add-on** → `dist/firefox/manifest.json`.
+Firefox removes a temporary add-on when it closes. To keep it, sign
+`dist/ti-jeux-firefox.zip` on [addons.mozilla.org](https://addons.mozilla.org/developers/) as "On your own".
+Run the build again after each change to the extension.
 
 ## Discord Activity
 
