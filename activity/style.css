@@ -1,0 +1,24 @@
+:root { color-scheme: dark; font: 16px/1.5 system-ui, sans-serif; background: #080a10; color: #f1f2f6; }
+* { box-sizing: border-box; }
+body { margin: 0; height: 100vh; overflow: hidden; background: #080a10; }
+h1 { font-size: 40px; margin: 0; }
+p { margin: 0; }
+.dim { color: #b5bad0; min-height: 1.5em; }
+label { display: block; margin-top: 12px; }
+input { display: block; width: min(480px, 90vw); padding: 10px; border: 1px solid #69718c; border-radius: 6px; color: inherit; background: #171923; font: inherit; }
+button { padding: 9px 14px; border: 1px solid #69718c; border-radius: 6px; color: white; background: #3d4664; font: inherit; cursor: pointer; }
+button:hover { background: #505c80; }
+button:disabled { opacity: .5; cursor: default; }
+button.big { font-size: 22px; padding: 14px 48px; background: #5865f2; border-color: #5865f2; }
+button.big:hover:not(:disabled) { background: #4752c4; }
+:focus-visible { outline: 3px solid #a9baff; outline-offset: 3px; }
+.stage { position: fixed; inset: 0; outline: none; }
+.stage.driving video { cursor: pointer; }
+video { display: block; width: 100%; height: 100%; object-fit: contain; }
+#splash { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 16px; text-align: center; background: #171923; }
+[hidden] { display: none !important; }
+/* Bottom-left, beside the centered game navbar, clear of the sites' own menus; over the splash too. */
+.music { position: fixed; bottom: 4px; left: 8px; z-index: 1; display: flex; align-items: center; gap: 8px; padding: 4px 8px; border-radius: 8px; background: rgba(8, 10, 16, .75); opacity: .6; }
+.music:hover, .music:focus-within { opacity: 1; }
+.music button { padding: 4px 10px; font-size: 14px; }
+.music input { display: inline; width: 100px; padding: 0; border: 0; background: none; }

@@ -1,0 +1,36 @@
+/* Collapses ad slots on supported game sites, so blocked ads leave no empty boxes.
+   Selectors come from each site's markup; check them again if a site redesigns. */
+
+/* Generic Google ad tags */
+ins.adsbygoogle,
+[id^="div-gpt-ad"],
+[id^="google_ads_iframe"],
+
+/* NYT games / crosswords */
+#ad-top,
+#ad-bottom,
+.pz-ad-box,
+.pz-ad,
+
+/* Washington Post games */
+[class*="DisplayAd__"],
+[class*="GameTemplate__adSidebar"],
+
+/* guessthe.game, guessthemovie.name, guesstheaudio.com (Freestar) */
+[id*="_incontent_"],
+[id*="_sidewall"],
+[id$="_stats_banner"],
+[id*="sticky-popup-container"],
+[id^="ad-slot-"],
+#sister-sites-ad,
+.ads-banner,
+.fallback-footer-ad-shell,
+.fallback-side-ad,
+#fs-sticky-footer,
+.fs-sticky-footer,
+
+/* bandle.app (NitroPay) */
+#nitro-med-rec,
+[id^="nitro-ad"] {
+  display: none !important;
+}

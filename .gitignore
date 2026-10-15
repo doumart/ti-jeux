@@ -35,3 +35,9 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # omc
 .omc/
+
+# local browser verification artifacts
+output/
+
+# cloud browser profile (game logins)
+.profile/

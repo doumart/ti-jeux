@@ -1,0 +1,17 @@
+# Production: the cloud browser + Caddy for HTTPS. Needs DOMAIN and the Discord values in .env.
+services:
+  app:
+    build: .
+    env_file: .env
+    shm_size: 1g
+    volumes: [profile:/data]   # the cloud browser's profile: your game logins live here
+    restart: unless-stopped
+  caddy:
+    image: caddy:2
+    command: caddy reverse-proxy --from ${DOMAIN:?set DOMAIN in .env} --to app:3000
+    ports: ["80:80", "443:443"]
+    volumes: [caddy:/data]
+    restart: unless-stopped
+volumes:
+  profile:
+  caddy:

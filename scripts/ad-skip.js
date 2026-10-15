@@ -18,10 +18,9 @@
     }
   }
 
-  // The button is inserted into the DOM, so childList is enough — the countdown
-  // ticking is characterData and doesn't wake us. Never disconnected: the
-  // interstitial can appear at any point (page load, or between games). Target
-  // is `document` so this works whether we run at document_start or later.
-  new MutationObserver(clickSkip).observe(document, { childList: true, subtree: true });
+  // Poll, not a subtree MutationObserver: the game board mutates constantly and
+  // waking on every batch made play laggy. Never stopped: the interstitial can
+  // appear at any point (page load, or between games).
+  setInterval(clickSkip, 500);
   clickSkip();
 })();
