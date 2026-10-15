@@ -1,4 +1,6 @@
-importScripts('sites.js');
+// Chrome runs this as a service worker. Firefox runs it as an event page that
+// loads sites.js first (see tools/build-firefox.ts) and has no importScripts.
+if (typeof importScripts === 'function') importScripts('sites.js');
 
 function getActiveSites(states) {
   return SITES.map((s) => s.url).filter((url) => states[url] !== false);
