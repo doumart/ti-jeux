@@ -10,13 +10,17 @@ Activity ("ti-jeux together") where a voice channel plays them together.
 **Firefox** (128 or later):
 
 ```bash
-bun run firefox:build   # writes dist/firefox and dist/ti-jeux-firefox.zip
+bun run firefox:build   # writes dist/firefox and dist/ti-jeux-firefox.xpi
 ```
 
 `about:debugging#/runtime/this-firefox` → **Load Temporary Add-on** → `dist/firefox/manifest.json`.
-Firefox removes a temporary add-on when it closes. To keep it, sign
-`dist/ti-jeux-firefox.zip` on [addons.mozilla.org](https://addons.mozilla.org/developers/) as "On your own".
-Run the build again after each change to the extension.
+Firefox removes a temporary add-on when it closes. Run the build again after each change to the extension.
+
+To keep it installed:
+- **Firefox Developer Edition or Nightly**: in `about:config`, set `xpinstall.signatures.required` to `false`.
+  Then `about:addons` → gear menu → **Install Add-on From File** → `dist/ti-jeux-firefox.xpi`.
+- **Other Firefox versions**: sign `dist/ti-jeux-firefox.xpi` on
+  [addons.mozilla.org](https://addons.mozilla.org/developers/) as "On your own".
 
 ## Discord Activity
 

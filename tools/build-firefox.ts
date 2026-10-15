@@ -1,4 +1,4 @@
-// Builds the Firefox add-on into dist/firefox and zips it to dist/ti-jeux-firefox.zip.
+// Builds the Firefox add-on into dist/firefox and packs it as dist/ti-jeux-firefox.xpi.
 // The scripts are shared with Chrome; only the manifest changes:
 // - Firefox has no background service worker, so it gets an event page.
 // - Firefox needs an add-on ID for storage.sync and for signing.
@@ -19,9 +19,9 @@ manifest.browser_specific_settings = {
   },
 };
 
-await $`rm -rf ${out} dist/ti-jeux-firefox.zip && mkdir -p ${out}`;
+await $`rm -rf ${out} dist/ti-jeux-firefox.xpi && mkdir -p ${out}`;
 await $`cp -R icons scripts ui ${out}/`;
 await Bun.write(`${out}/manifest.json`, JSON.stringify(manifest, null, 2) + "\n");
-await $`cd ${out} && zip -qr ../ti-jeux-firefox.zip .`;
+await $`cd ${out} && zip -qr ../ti-jeux-firefox.xpi .`;
 
-console.log(`Built ${out} and dist/ti-jeux-firefox.zip`);
+console.log(`Built ${out} and dist/ti-jeux-firefox.xpi`);
